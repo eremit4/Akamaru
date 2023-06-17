@@ -3,44 +3,25 @@ from time import sleep
 from requests import get
 from colorama import Fore
 from bs4 import BeautifulSoup
+from traceback import format_exc
 from prettytable import PrettyTable
-from utils.utils import find_similarities_in_sector
-from traceback import format_exc as print_traceback
-from requests.exceptions import ConnectionError
-from urllib3.exceptions import ProtocolError
+from utils.util import get_sector_keywords, check_group_in_groups, check_sector_blacklist
 
 
-def get_elements_from_mitre_groups_page() -> BeautifulSoup:
+def get_elements_from_mitre_groups_page() -> object:
     """
     Gets the HTML elements from MITRE ATT&CK Groups page.
     :return: The Beautifulsoup object to be parser.
     """
-    try:
-        response = get(url="https://attack.mitre.org/groups/",
-                       headers={
-                           "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
-                           "Accept": "*/*",
-                           "Accept-Language": "pt - BR, pt;q = 0.8, en - US;q = 0.5, en;q = 0.3",
-                           "Connection": "keep-alive",
-                           "Upgrade-Insecure-Requests": "1"})
-        if response.status_code == 200:
-            return BeautifulSoup(response.content, "html.parser")
-        else:
-            print(
-                f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Groups. Status: {response.status_code}. Response: {response.text}")
-            exit(0)
-    except ConnectionError as error:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Groups:\n{error}")
-        exit(1)
-    except ConnectionResetError as error:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Groups:\n{error}")
-        exit(1)
-    except ProtocolError as error:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Groups:\n{error}")
-        exit(1)
-    except Exception:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Groups:\n{print_traceback()}")
-        exit(1)
+    response = get(url="https://attack.mitre.org/groups/",
+                   headers={
+                       "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
+                       "Accept": "*/*",
+                       "Accept-Language": "pt - BR, pt;q = 0.8, en - US;q = 0.5, en;q = 0.3",
+                       "Connection": "keep-alive",
+                       "Upgrade-Insecure-Requests": "1"})
+    if response.status_code == 200:
+        return BeautifulSoup(response.content, "html.parser")
 
 
 def get_ttps_from_mitre_by_group_id(group_id: str) -> BeautifulSoup:
@@ -49,32 +30,15 @@ def get_ttps_from_mitre_by_group_id(group_id: str) -> BeautifulSoup:
     :param group_id: The group ID from MITRE.
     :return: The Beautifulsoup object to be parser.
     """
-    try:
-        response = get(url=f"https://attack.mitre.org/groups/{group_id}",
-                       headers={
-                           "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
-                           "Accept": "*/*",
-                           "Accept-Language": "pt - BR, pt;q = 0.8, en - US;q = 0.5, en;q = 0.3",
-                           "Connection": "keep-alive",
-                           "Upgrade-Insecure-Requests": "1"})
-        if response.status_code == 200:
-            return BeautifulSoup(response.content, "html.parser")
-        else:
-            print(
-                f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Groups. Status: {response.status_code}. Response: {response.text}")
-            exit(0)
-    except ConnectionError as error:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Groups:\n{error}")
-        exit(1)
-    except ConnectionResetError as error:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Groups:\n{error}")
-        exit(1)
-    except ProtocolError as error:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Groups:\n{error}")
-        exit(1)
-    except Exception:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Groups:\n{print_traceback()}")
-        exit(1)
+    response = get(url=f"https://attack.mitre.org/groups/{group_id}",
+                   headers={
+                       "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
+                       "Accept": "*/*",
+                       "Accept-Language": "pt - BR, pt;q = 0.8, en - US;q = 0.5, en;q = 0.3",
+                       "Connection": "keep-alive",
+                       "Upgrade-Insecure-Requests": "1"})
+    if response.status_code == 200:
+        return BeautifulSoup(response.content, "html.parser")
 
 
 def get_technique_from_mitre(tech_id: str, sub_tech_id=None) -> BeautifulSoup:
@@ -88,32 +52,15 @@ def get_technique_from_mitre(tech_id: str, sub_tech_id=None) -> BeautifulSoup:
         path = f"{tech_id}/{sub_tech_id}"
     else:
         path = tech_id
-    try:
-        response = get(url=f"https://attack.mitre.org/techniques/{path}",
-                       headers={
-                           "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
-                           "Accept": "*/*",
-                           "Accept-Language": "pt - BR, pt;q = 0.8, en - US;q = 0.5, en;q = 0.3",
-                           "Connection": "keep-alive",
-                           "Upgrade-Insecure-Requests": "1"})
-        if response.status_code == 200:
-            return BeautifulSoup(response.content, "html.parser")
-        else:
-            print(
-                f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Technique page. Status: {response.status_code}. Response: {response.text}")
-            exit(0)
-    except ConnectionError as error:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Technique page:\n{error}")
-        exit(1)
-    except ConnectionResetError as error:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Technique page:\n{error}")
-        exit(1)
-    except ProtocolError as error:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Technique page:\n{error}")
-        exit(1)
-    except Exception:
-        print(f"\n{Fore.WHITE}[{Fore.LIGHTRED_EX}!{Fore.WHITE}] Error when getting elements from MITRE ATT&CK Technique page:\n{print_traceback()}")
-        exit(1)
+    response = get(url=f"https://attack.mitre.org/techniques/{path}",
+                   headers={
+                       "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
+                       "Accept": "*/*",
+                       "Accept-Language": "pt - BR, pt;q = 0.8, en - US;q = 0.5, en;q = 0.3",
+                       "Connection": "keep-alive",
+                       "Upgrade-Insecure-Requests": "1"})
+    if response.status_code == 200:
+        return BeautifulSoup(response.content, "html.parser")
 
 
 def mitre_groups_parser(sector=None) -> list:
@@ -123,29 +70,34 @@ def mitre_groups_parser(sector=None) -> list:
     :return: A dict of collected information.
     """
     soup, groups = get_elements_from_mitre_groups_page(), list()
-    for item in tqdm(iterable=soup.find_all("tr")[1:],
-                     desc=f"{Fore.WHITE}[{Fore.RED}>{Fore.WHITE}] Collecting relevant groups from MITRE ATT&CK{Fore.RED}",
-                     bar_format="{l_bar}{bar:10}"):
-        groups_raw = item.get_text().strip().split("\n")
-        mitre_group_id, mitre_group_name = groups_raw[0].strip(), groups_raw[3].strip()
-        if groups_raw[6] != "":
-            mitre_associated_groups, mitre_group_desc = groups_raw[6].strip(), groups_raw[9].strip()
-        else:
-            mitre_associated_groups, mitre_group_desc = "Unknown", groups_raw[8]
-        group_data = {
-            "name": mitre_group_name,
-            "mitre_id": mitre_group_id,
-            "relations": mitre_associated_groups,
-            "description": mitre_group_desc
-        }
-        if sector is not None:
-            for keyword_ in find_similarities_in_sector(sector_name=sector):
-                if sector is not None and keyword_ in mitre_group_desc and group_data not in groups:
-                    groups.append(group_data)
-        else:
-            groups.append(group_data)
-        sleep(0.002)
-    return groups
+    try:
+        for item in tqdm(iterable=soup.find_all("tr")[1:],
+                         desc=f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Collecting relevant groups from MITRE ATT&CK{Fore.BLUE}",
+                         bar_format="{l_bar}{bar:10}"):
+            groups_raw = item.get_text().strip().split("\n")
+            mitre_group_id, mitre_group_name = groups_raw[0].strip(), groups_raw[3].strip()
+            if groups_raw[6] != "":
+                mitre_associated_groups, mitre_group_desc = groups_raw[6].strip(), groups_raw[9].strip()
+            else:
+                mitre_associated_groups, mitre_group_desc = "None", groups_raw[8]
+            group_data = {
+                "name": mitre_group_name,
+                "mitre_id": mitre_group_id,
+                "url": f"https://attack.mitre.org/groups/{mitre_group_id}",
+                "relations": mitre_associated_groups,
+                "description": mitre_group_desc
+            }
+            if sector is not None:
+                for keyword_ in get_sector_keywords(sector_name=sector):
+                    mitre_group_desc = check_sector_blacklist(desc=mitre_group_desc, sector=sector)
+                    if sector is not None and keyword_ in mitre_group_desc and group_data not in groups:
+                        groups.append(group_data)
+            else:
+                groups.append(group_data)
+            sleep(0.002)
+        return groups
+    except AttributeError:
+        return []
 
 
 def get_softwares_used_from_mitre(group_id: str) -> list:
@@ -155,9 +107,8 @@ def get_softwares_used_from_mitre(group_id: str) -> list:
     :return: A list with the softwares used.
     """
     soup, softwares = get_ttps_from_mitre_by_group_id(group_id=group_id), list()
-    raw_table = soup.find_all("a")
-    for a_tag in tqdm(iterable=raw_table[1:],
-                      desc=f"{Fore.WHITE}[{Fore.RED}>{Fore.WHITE}] Collecting Softwares Used{Fore.RED}",
+    for a_tag in tqdm(iterable=soup.find_all("a")[1:],
+                      desc=f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Collecting Softwares Used{Fore.BLUE}",
                       bar_format="{l_bar}{bar:10}"):
         if "/software/S" in a_tag.attrs["href"] and a_tag.attrs["href"].split("/")[2] != a_tag.get_text():
             softwares.append(a_tag.get_text())
@@ -191,15 +142,15 @@ def print_mitre_groups_table(groups_from_mitre: list, columns=None) -> None:
     for group_ in groups_from_mitre:
         sector_table.add_row(
             [
-                f"{Fore.WHITE}{group_['mitre_id']}{Fore.RED}",
-                f"{Fore.WHITE}{group_['name']}{Fore.RED}",
-                f"{Fore.WHITE}{group_['relations']}{Fore.RED}"
+                f"{Fore.WHITE}{group_['mitre_id']}{Fore.LIGHTBLUE_EX}",
+                f"{Fore.WHITE}{group_['name']}{Fore.LIGHTBLUE_EX}",
+                f"{Fore.WHITE}{group_['relations']}{Fore.LIGHTBLUE_EX}"
             ]
         )
     if columns is None:
-        print(f"{Fore.RED}{sector_table.get_string(fields=['ID', 'MITRE Groups'])}")
+        print(f"{Fore.LIGHTBLUE_EX}{sector_table.get_string(fields=['ID', 'MITRE Groups'])}")
     else:
-        print(f"{Fore.RED}{sector_table.get_string(fields=columns)}")
+        print(f"{Fore.LIGHTBLUE_EX}{sector_table.get_string(fields=columns)}")
 
 
 def print_mitre_softwares_table(tools: list) -> None:
@@ -211,9 +162,65 @@ def print_mitre_softwares_table(tools: list) -> None:
     software_table = PrettyTable()
     software_table.field_names = ["Softwares Used"]
     for tool in tools:
-        software_table.add_row(
-            [
-                f"{Fore.WHITE}{tool}{Fore.LIGHTRED_EX}"
-            ]
-        )
-    print(f"{Fore.RED}{software_table.get_string(fields=['Softwares Used'])}")
+        software_table.add_row([f"{Fore.WHITE}{tool}{Fore.LIGHTBLUE_EX}"])
+    print(f"{Fore.LIGHTBLUE_EX}{software_table.get_string(fields=['Softwares Used'])}")
+
+
+def perform_mitre_visibility(sector=None, group=None, ttp=None) -> dict:
+    """
+    Performs the MITRE functions execution.
+    :param sector: Sector name.
+    :param group: Group name.
+    :param ttp: A bool value to 'ttp' flag.
+    :return: A dict with results.
+    """
+    if (ttp and sector) is not None:
+        mitre_output = dict()
+        for group in mitre_groups_parser(sector=sector):
+            try:
+                print(f"\n{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Getting {Fore.BLUE}{group['name']}{Fore.WHITE} TTPs")
+                group_tools = get_softwares_used_from_mitre(group_id=group["mitre_id"])
+                group["navigator_url"] = get_mitre_navigator_url(group_id=group["mitre_id"])["matrix"]
+                if group_tools:
+                    group["softwares"] = group_tools
+                else:
+                    group_tools = ["None"]
+                mitre_output[group["name"]] = group
+                # printing results
+                print(f"\n{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Description:\n\t[{Fore.BLUE}+{Fore.WHITE}] {group['description']}")
+                print(f"\n{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] ATT&CK Navigator:\n\t[{Fore.BLUE}+{Fore.WHITE}] {Fore.BLUE}{group['navigator_url']}{Fore.RESET}\n")
+                print_mitre_groups_table(groups_from_mitre=[group], columns=["Associated Groups"])
+                print_mitre_softwares_table(tools=group_tools)
+            except Exception:
+                print(f"{Fore.WHITE}[{Fore.MAGENTA}!{Fore.WHITE}] Error on MITRE ATT&CK sector and ttp operations: {repr(format_exc())}")
+                continue
+        return {"mitre_groups": mitre_output}
+    elif sector is not None:
+        try:
+            mitre_groups = mitre_groups_parser(sector=sector)
+            print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Found {Fore.LIGHTBLUE_EX}{len(mitre_groups)}{Fore.WHITE} groups on MITRE ATT&CK")
+            if mitre_groups:
+                print_mitre_groups_table(groups_from_mitre=mitre_groups)
+            return {"mitre_groups": mitre_groups}
+        except Exception:
+            print(f"{Fore.WHITE}[{Fore.MAGENTA}!{Fore.WHITE}] Error on MITRE ATT&CK sector operations: {repr(format_exc())}")
+            return {}
+    elif group:
+        try:
+            group_info = check_group_in_groups(groups=mitre_groups_parser(), group=group)
+            if not group_info:
+                print(f"{Fore.WHITE}[{Fore.MAGENTA}!{Fore.WHITE}] The {Fore.MAGENTA}{group}{Fore.WHITE} group was not found on MITRE ATT&CK")
+                return {}
+            else:
+                group_tools = get_softwares_used_from_mitre(group_id=group_info["mitre_id"])
+                group_info["softwares"] = group_tools
+                group_info["navigator_url"] = get_mitre_navigator_url(group_id=group_info["mitre_id"])["matrix"]
+                # printing MITRE ATT&CK results
+                print(f"\n{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Description:\n\t[{Fore.BLUE}+{Fore.WHITE}] {group_info['description']}")
+                print(f"\n{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] ATT&CK Navigator:\n\t[{Fore.BLUE}+{Fore.WHITE}] {Fore.BLUE}{group_info['navigator_url']}{Fore.RESET}\n")
+                print_mitre_groups_table(groups_from_mitre=[group_info], columns=["Associated Groups"])
+                print_mitre_softwares_table(tools=group_tools)
+                return group_info
+        except Exception:
+            print(f"{Fore.WHITE}[{Fore.MAGENTA}!{Fore.WHITE}] Error on MITRE ATT&CK group operations: {repr(format_exc())}")
+            return {}
