@@ -2,7 +2,7 @@
 > This project aims to automate part of the process of mapping groups of threats relevant to a provided sector. After receiving the sector name (e.g. financial, education, etc.), Akamaru parses the description of groups on [MITRE ATT&CK](https://attack.mitre.org/groups/) and [Ransomware Anthology](https://www.sentinelone.com/anthology/) (SentinelOne) to filter and return information about groups that affect the sector in question.
 > After collecting the groups, compare the results with recent activities of ransomware groups (approximately 7 days) and look for analysis of groups that are in both Ransomware Anthology results and recent [Ransomlook](https://www.ransomlook.io/recent) activities.
 
-![akamaru](https://i.gifer.com/8HpQ.gif)
+![](https://i.gifer.com/8HpQ.gif)
 
 ## 🐾 Setup
 
