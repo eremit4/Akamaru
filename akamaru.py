@@ -87,7 +87,7 @@ if __name__ == '__main__':
                                  |-__ {}(/ {}- -{} \){} -__|
                                  |___ {}/`\_Y_/`\{}____|
                                       {}\)     (/
-                       {}[{}>{}] Acquiring information about groups
+                       {}[{}>{}] Sniffing out relevant threat groups
                        [{}>{}] eremit4@protonmail.com
                                          
     """.format(Fore.LIGHTBLACK_EX, Fore.MAGENTA,

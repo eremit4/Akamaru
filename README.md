@@ -45,7 +45,7 @@ python akamaru.py --ransomware-activities
 ```
 
 ## 🐕 Demo
-[![asciicast](https://asciinema.org/a/591938.svg)](https://asciinema.org/a/591938)
+[![asciicast](https://asciinema.org/a/591986.svg)](https://asciinema.org/a/591986)
 
 ## 📝 License
 This project is under the [MIT License](LICENSE).
