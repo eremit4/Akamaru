@@ -1,6 +1,6 @@
 # Akamaru
-> This project aims to automate part of the process of mapping groups of threats relevant to a provided sector. After receiving the sector name (e.g. financial, education, etc.), Akamaru parses the description of groups on [MITRE ATT&CK](https://attack.mitre.org/groups/) and [Ransomware Anthology](https://www.sentinelone.com/anthology/) (SentinelOne) to filter and return information about groups that affect the sector in question.
-> After collecting the groups, compare the results with recent activities of ransomware groups (approximately 7 days) and look for analysis of groups that are in both Ransomware Anthology results and recent [Ransomlook](https://www.ransomlook.io/recent) activities.
+>In the day-to-day life of a CTI or Threat Hunting team, one of the main tasks is trying to answer the questions: who are my enemies? what are the threat groups that affect my industry?
+Doing this mapping can take an analyst many hours, even weeks. Considering the Threat Intelligence Lifecycle, Akamaru aims to automate the initial phase of Collect by collecting the threat groups and some relevant TTPs from [MITRE](https://attack.mitre.org/groups/), [Ransomware Anthology](https://www.sentinelone.com/anthology/) (SentinelOne), and [Ransomlook](https://www.ransomlook.io/recent), just informing the name of the sector of interest (e.g. financial, educational ) or the name of the group (e.g. Akira) in order to get more information about it.
 
 ## 🐾 Setup
 
