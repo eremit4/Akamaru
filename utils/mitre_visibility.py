@@ -8,7 +8,7 @@ from prettytable import PrettyTable
 from utils.util import get_sector_keywords, check_group_in_groups, check_sector_blacklist
 
 
-def get_elements_from_mitre_groups_page() -> object:
+def get_elements_from_mitre_groups_page() -> BeautifulSoup:
     """
     Gets the HTML elements from MITRE ATT&CK Groups page.
     :return: The Beautifulsoup object to be parser.
