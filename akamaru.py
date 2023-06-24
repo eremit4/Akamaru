@@ -1,8 +1,8 @@
 from colorama import init, Fore
 from argparse import ArgumentParser, HelpFormatter
 from traceback import format_exc as print_traceback
-from utils.util import create_csv_report
 from utils.mitre_visibility import perform_mitre_visibility
+from utils.util import create_csv_report, print_supported_sectors
 from utils.sentinelone_visibility import performs_sentinel_visibility
 from utils.ransomlook_visibility import performs_ransomloook_visibility
 
@@ -41,6 +41,9 @@ def main(args_: ArgumentParser) -> None:
     elif parser.ransomware_activities:
         performs_ransomloook_visibility(general_activity=True)
 
+    elif parser.supported_sectors:
+        print_supported_sectors()
+
     if parser.output:
         create_csv_report(mitre=mitre_results, sentinel=sentinel_results, ttp=parser.ttp)
 
@@ -48,6 +51,7 @@ def main(args_: ArgumentParser) -> None:
             and not parser.group \
             and not parser.ttp \
             and not parser.ransomware_activities \
+            and not parser.supported_sectors \
             and not parser.output:
         args_.print_help()
 
@@ -57,7 +61,8 @@ if __name__ == '__main__':
     args = ArgumentParser(description="",  add_help=False, formatter_class=arg_style)
     # well known threat groups
     group_required = args.add_argument_group(title="Well Known Threat Groups")
-    group_required.add_argument("-s", "--sector", metavar="<sector>", type=str, required=False, help="Receives the sector name of your interesting and returns the well-known groups related. Sectors accepted: financial, healthcare, ics, defense, government, technology, and education.")
+    group_required.add_argument("-s", "--sector", metavar="<sector>", type=str, required=False, help="Receives the sector name of your interesting and returns the well-known groups related. Use the -ss option to know whats sectors are supported.")
+    group_required.add_argument("-ss", "--supported-sectors", action="store_true", help="Returns the supported sectors by Akamaru.")
     group_required.add_argument("-t", "--ttp", action="store_true", help="Returns TTPs associated with groups collected from MITRE ATT&CK. It must be used with the <sector> flag. Due to information overload, using this option without the <output> flag is not recommended.")
     group_required.add_argument("-g", "--group", metavar="<group>", type=str, required=False, help="Receives the name of the threat group and returns the known information about them.")
     # ransomware activities

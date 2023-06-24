@@ -24,6 +24,11 @@ Discovering the project capabilities:
 python akamaru.py --help
 ```
 
+Discovering which sectors are supported:
+```bash
+python akamaru.py -ss
+```
+
 Finding only the groups relevant to a given sector:
 ```bash
 python akamaru.py --sector <name>

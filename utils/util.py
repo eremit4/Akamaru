@@ -2,6 +2,7 @@ from os import mkdir
 from os.path import isdir
 from colorama import Fore
 from datetime import datetime
+from prettytable import PrettyTable
 
 
 def get_sector_keywords(sector_name: str) -> list:
@@ -47,7 +48,7 @@ def check_sector_blacklist(desc: str, sector: str) -> str:
         "financial": [""],
         "healthcare": [""],
         "ics": ["cryptocurrency-mining"],
-        "defende": [""],
+        "defense": [""],
         "government": [""],
         "technology": [""],
         "education": [""],
@@ -108,3 +109,16 @@ def create_csv_report(mitre=None, sentinel=None, ttp=None) -> None:
 
     report_file.close()
     print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] The {Fore.MAGENTA}{report_name}{Fore.WHITE} report was successfully created and is located in the {Fore.MAGENTA}output{Fore.WHITE} directory")
+
+
+def print_supported_sectors() -> None:
+    """
+    Shows on the screen which sectors are supported
+    :return: None
+    """
+    sectors_table = PrettyTable()
+    sectors_table.field_names = ["Supported Sectors"]
+    for sector in sorted(["financial", "healthcare", "ics", "defense", "government", "technology", "education", "media", "law", "tourism"]):
+        sectors_table.add_row([f"{Fore.WHITE}{sector}{Fore.LIGHTBLUE_EX}"])
+    print(f"{Fore.LIGHTBLUE_EX}{sectors_table.get_string(fields=['Supported Sectors'])}")
+
