@@ -2,6 +2,8 @@
 >In the day-to-day life of a CTI or Threat Hunting team, one of the main tasks is trying to answer the questions: who are my enemies? what are the threat groups that affect my industry?
 Doing this mapping can take an analyst many hours, even weeks. Considering the Threat Intelligence Lifecycle, Akamaru aims to automate the initial phase of Collect by collecting the threat groups and some relevant TTPs from [MITRE](https://attack.mitre.org/groups/), [Ransomware Anthology](https://www.sentinelone.com/anthology/) (SentinelOne), and [Ransomlook](https://www.ransomlook.io/recent), just informing the name of the sector of interest (e.g. financial, educational ) or the name of the group (e.g. Akira) in order to get more information about it.
 
+![](./utils/akamaru_logo.png)
+
 ## 🐾 Setup
 
 Cloning the project:
