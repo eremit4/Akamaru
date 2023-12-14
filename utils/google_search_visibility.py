@@ -24,7 +24,7 @@ def search_for_group_analysis_on_google(group_name: str, ) -> None:
                        "Upgrade-Insecure-Requests": "1"}).content
 
     a_tags, count = BeautifulSoup(google_search_request(dork=f"intext:{group_name} intext:ransomware intext:analysis"), 'html.parser').find_all("a"), 0
-    print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Looking for analysis about {Fore.MAGENTA}{group_name}{Fore.WHITE} group")
+    print(f"\n{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Looking for analysis about {Fore.MAGENTA}{group_name}{Fore.WHITE} group")
     for link in a_tags:
         if link.attrs.get("href") and not check_blacklist(link_=link.attrs.get("href")) and choose_priority_sources(source_url=link.attrs.get('href')) and count < 6:
             print(f"\t{Fore.WHITE}[{Fore.MAGENTA}{count + 1}{Fore.WHITE}] {link.attrs.get('href')}")

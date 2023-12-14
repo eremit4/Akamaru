@@ -4,7 +4,7 @@ from traceback import format_exc as print_traceback
 from utils.mitre_visibility import perform_mitre_visibility
 from utils.util import create_csv_report, print_supported_sectors
 from utils.sentinelone_visibility import performs_sentinel_visibility
-from utils.ransomlook_visibility import performs_ransomloook_visibility
+from utils.ransomlook_visibility import performs_ransomlook_visibility
 
 
 class CustomHelpFormatter(HelpFormatter):
@@ -39,7 +39,7 @@ def main(args_: ArgumentParser) -> None:
         sentinel_results = performs_sentinel_visibility(group=parser.group)
 
     elif parser.ransomware_activities:
-        performs_ransomloook_visibility(general_activity=True)
+        performs_ransomlook_visibility(general_activity=True)
 
     elif parser.supported_sectors:
         print_supported_sectors()

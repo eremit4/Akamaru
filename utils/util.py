@@ -1,8 +1,14 @@
+from __future__ import with_statement
 from os import mkdir
 from os.path import isdir
 from colorama import Fore
 from datetime import datetime
+from contextlib import closing
 from prettytable import PrettyTable
+from urllib.parse import urlencode
+from urllib.request import urlopen
+
+import sys
 
 
 def get_sector_keywords(sector_name: str) -> list:
@@ -122,3 +128,13 @@ def print_supported_sectors() -> None:
         sectors_table.add_row([f"{Fore.WHITE}{sector}{Fore.LIGHTBLUE_EX}"])
     print(f"{Fore.LIGHTBLUE_EX}{sectors_table.get_string(fields=['Supported Sectors'])}")
 
+
+def make_url_tiny(url: str) -> str:
+    """
+    Convert a long URL in a tiny URL
+    :param url: URL to be transformed
+    :return: Tiny URL
+    """
+    request_url = f"http://tinyurl.com/api-create.php?{urlencode({'url':url})}"
+    with closing(urlopen(request_url)) as response:
+        return response.read().decode("utf-8")

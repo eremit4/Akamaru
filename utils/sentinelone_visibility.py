@@ -5,8 +5,8 @@ from bs4 import BeautifulSoup
 from traceback import format_exc
 from prettytable import PrettyTable
 from utils.util import get_sector_keywords, check_group_in_groups
-from utils.ransomlook_visibility import performs_ransomloook_visibility
-from utils.google_search_visibiity import search_for_group_analysis_on_google
+from utils.ransomlook_visibility import performs_ransomlook_visibility
+from utils.google_search_visibility import search_for_group_analysis_on_google
 
 
 def get_elements_from_anthology_page() -> BeautifulSoup:
@@ -142,7 +142,7 @@ def performs_sentinel_visibility(sector=None, group=None) -> dict:
             print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Found {Fore.LIGHTBLUE_EX}{len(sentinel_groups)} {Fore.WHITE}ransomware groups on SentinelOne")
             if sentinel_groups:
                 print_sentinel_groups_table(groups_from_sentinel=sentinel_groups)
-                activities = performs_ransomloook_visibility(groups_from_sentinel=sentinel_groups)
+                activities = performs_ransomlook_visibility(groups_from_sentinel=sentinel_groups)
                 for actor in activities.get("groups"):
                     search_for_group_analysis_on_google(group_name=actor)
                 return {"groups": sentinel_groups, "activities": activities.get("groups")}
@@ -162,13 +162,13 @@ def performs_sentinel_visibility(sector=None, group=None) -> dict:
                     return {}
                 else:
                     print(f"\n{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Description:\n\t[{Fore.BLUE}+{Fore.WHITE}] {group_info['description']}")
-                    group_info["activities"] = performs_ransomloook_visibility(group=group)
+                    group_info["activities"] = performs_ransomlook_visibility(group=group)
                     for actor in group_info["activities"]["groups"]:
                         search_for_group_analysis_on_google(group_name=actor)
                     return group_info
             else:
                 print(f"\n{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Description:\n\t[{Fore.BLUE}+{Fore.WHITE}] {group_info['description']}")
-                group_info["activities"] = performs_ransomloook_visibility(group=group)
+                group_info["activities"] = performs_ransomlook_visibility(group=group)
                 for actor in group_info["activities"]["groups"]:
                     search_for_group_analysis_on_google(group_name=actor)
                 return group_info

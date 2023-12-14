@@ -1,4 +1,5 @@
 from tqdm import tqdm
+from re import finditer, M as M_METHOD, IGNORECASE
 from requests import get
 from colorama import Fore
 from bs4 import BeautifulSoup
@@ -13,6 +14,23 @@ def get_elements_from_recent_activities() -> BeautifulSoup:
     :return: The Beautifulsoup object to be parser
     """
     response = get(url="https://www.ransomlook.io/recent",
+                   headers={
+                       "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
+                       "Accept": "*/*",
+                       "Accept-Language": "pt - BR, pt;q = 0.8, en - US;q = 0.5, en;q = 0.3",
+                       "Connection": "keep-alive",
+                       "Upgrade-Insecure-Requests": "1"})
+    if response.status_code == 200:
+        return BeautifulSoup(response.content, "html.parser")
+
+
+def get_group_profile(group: str) -> BeautifulSoup:
+    """
+    Request to get the html elements from Ransomlook recent publications page
+    :param group: group name
+    :return: The Beautifulsoup object to be parser
+    """
+    response = get(url=f"https://www.ransomlook.io/group/{group}",
                    headers={
                        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
                        "Accept": "*/*",
@@ -101,9 +119,45 @@ def print_ransomware_activities_table(victims_count: dict) -> None:
     print(f"{Fore.LIGHTBLUE_EX}{activities_table.get_string(fields=['Group', 'Victims'])}")
 
 
-def performs_ransomloook_visibility(groups_from_sentinel=None, group=None, general_activity=None) -> dict:
+def parse_group_profile(rl_groups: iter) -> dict:
     """
-    Invokes the Ransomlook's functions execution.
+    Collects information about the profile groups
+    :param rl_groups: ransomlook groups
+    :return:
+    """
+    groups_profiles = dict()
+    for group in tqdm(iterable=rl_groups,
+                      desc=f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Collecting Groups Profiles{Fore.BLUE}",
+                      bar_format="{l_bar}{bar:10}"):
+        profile_page_soup = get_group_profile(group=group)
+        raw_table = profile_page_soup.find_all(attrs={"id": "table"})
+        group_urls = list()
+        for element in raw_table:
+            # parsing URLs table
+            for onion_url in finditer(r"(?:https?://)?(?:www)?(\S*?\.onion)\b", element.get_text(), M_METHOD | IGNORECASE):
+                group_urls.append(onion_url.group(0))
+        groups_profiles[group] = {"urls": list(set(group_urls))}
+    return groups_profiles
+
+
+def print_groups_urls_table(urls_from_groups: dict) -> None:
+    """
+    Prints ransomware activity table.
+    :param urls_from_groups: A dict with group name and activity datetime data.
+    :return: None.
+    """
+    for group in urls_from_groups.items():
+        activities_table = PrettyTable()
+        title = f"{str(group[0]).title()} Urls"
+        activities_table.field_names = [title]
+        for url in group[1]["urls"]:
+            activities_table.add_row([f"{Fore.WHITE}{url.strip()}{Fore.LIGHTBLUE_EX}"])
+        print(f"{Fore.LIGHTBLUE_EX}{activities_table.get_string(fields=[title])}")
+
+
+def performs_ransomlook_visibility(groups_from_sentinel=None, group=None, general_activity=None) -> dict:
+    """
+    Invokes the Ransomlook's functions.
     :param groups_from_sentinel: A list with groups from SentinelOne.
     :param group: Group name.
     :param general_activity: A bool value to get the recent ransomware activities without filtering.
@@ -112,11 +166,14 @@ def performs_ransomloook_visibility(groups_from_sentinel=None, group=None, gener
     if groups_from_sentinel:
         try:
             print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Looking for activities of the aforementioned ransomware groups")
-            groups_victims, first_date, last_date = count_group_hits(group_mentions=get_ransomware_activities())
-            common_active_groups = compare_sentinel_and_ransomlook(sentinel_groups=groups_from_sentinel, ransom_activities=groups_victims)
+            groups_from_ransomlook, first_date, last_date = count_group_hits(group_mentions=get_ransomware_activities())
+            common_active_groups = compare_sentinel_and_ransomlook(sentinel_groups=groups_from_sentinel,
+                                                                   ransom_activities=groups_from_ransomlook)
             if common_active_groups:
+                rl_groups_profiles = parse_group_profile(rl_groups=common_active_groups.keys())
                 print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] The results bellow occurred between {Fore.MAGENTA}{first_date}{Fore.WHITE} and {Fore.MAGENTA}{last_date}{Fore.WHITE}")
                 print_ransomware_activities_table(victims_count=common_active_groups)
+                print_groups_urls_table(urls_from_groups=rl_groups_profiles)
                 return {"first_date": first_date, "last_date": last_date, "groups": common_active_groups}
             else:
                 print(f"{Fore.WHITE}[{Fore.MAGENTA}!{Fore.WHITE}] No activity was found between {Fore.MAGENTA}{first_date}{Fore.WHITE} and {Fore.MAGENTA}{last_date}{Fore.WHITE}")
@@ -124,28 +181,34 @@ def performs_ransomloook_visibility(groups_from_sentinel=None, group=None, gener
         except Exception:
             print(f"{Fore.WHITE}[{Fore.MAGENTA}!{Fore.WHITE}] Error getting ransomware activities for SentinelOne groups: {repr(format_exc())}")
             return {}
+
     elif group:
         try:
             print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Looking for recent activities related to the {Fore.MAGENTA}{group}{Fore.WHITE} group")
             group_activities = get_ransomware_activities_by_group(group_name=group)
             if group_activities:
-                groups_victims, first_date, last_date = count_group_hits(group_mentions=group_activities)
+                groups_from_ransomlook, first_date, last_date = count_group_hits(group_mentions=group_activities)
+                rl_groups_profiles = parse_group_profile(rl_groups=group_activities)
                 print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] The results bellow occurred between {Fore.MAGENTA}{first_date}{Fore.WHITE} and {Fore.MAGENTA}{last_date}{Fore.WHITE}")
-                print_ransomware_activities_table(victims_count=groups_victims)
-                return {"first_date": first_date, "last_date": last_date, "groups": groups_victims}
+                print_ransomware_activities_table(victims_count=groups_from_ransomlook)
+                print_groups_urls_table(urls_from_groups=rl_groups_profiles)
+                return {"first_date": first_date, "last_date": last_date, "groups": groups_from_ransomlook}
             else:
                 print(f"{Fore.WHITE}[{Fore.MAGENTA}!{Fore.WHITE}] No activity was found {Fore.MAGENTA}{group}{Fore.WHITE} group")
                 return {}
         except Exception:
             print(f"{Fore.WHITE}[{Fore.MAGENTA}!{Fore.WHITE}] Error getting ransomware activities for {Fore.MAGENTA}{group}{Fore.WHITE}: {repr(format_exc())}")
             return {}
+
     elif general_activity:
         try:
             print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Looking for recent ransomware activities")
-            groups_victims, first_date, last_date = count_group_hits(group_mentions=get_ransomware_activities())
+            groups_from_ransomlook, first_date, last_date = count_group_hits(group_mentions=get_ransomware_activities())
+            rl_groups_profiles = parse_group_profile(rl_groups=groups_from_ransomlook)
             print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] The results bellow occurred between {Fore.MAGENTA}{first_date}{Fore.WHITE} and {Fore.MAGENTA}{last_date}{Fore.WHITE}")
-            print_ransomware_activities_table(victims_count=groups_victims)
-            return {"first_date": first_date, "last_date": last_date, "groups": groups_victims}
+            print_ransomware_activities_table(victims_count=groups_from_ransomlook)
+            print_groups_urls_table(urls_from_groups=rl_groups_profiles)
+            return {"first_date": first_date, "last_date": last_date, "groups": groups_from_ransomlook}
         except Exception:
             print(f"{Fore.WHITE}[{Fore.MAGENTA}!{Fore.WHITE}] Error getting general ransomware activities: {repr(format_exc())}")
             return {}

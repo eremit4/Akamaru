@@ -5,7 +5,7 @@ from colorama import Fore
 from bs4 import BeautifulSoup
 from traceback import format_exc
 from prettytable import PrettyTable
-from utils.util import get_sector_keywords, check_group_in_groups, check_sector_blacklist
+from utils.util import get_sector_keywords, check_group_in_groups, check_sector_blacklist, make_url_tiny
 
 
 def get_elements_from_mitre_groups_page() -> BeautifulSoup:
@@ -80,17 +80,19 @@ def mitre_groups_parser(sector=None) -> list:
                 mitre_associated_groups, mitre_group_desc = groups_raw[6].strip(), groups_raw[9].strip()
             else:
                 mitre_associated_groups, mitre_group_desc = "None", groups_raw[8]
+
             group_data = {
                 "name": mitre_group_name,
                 "mitre_id": mitre_group_id,
                 "url": f"https://attack.mitre.org/groups/{mitre_group_id}",
                 "relations": mitre_associated_groups,
-                "description": mitre_group_desc
+                "description": mitre_group_desc,
             }
             if sector is not None:
                 for keyword_ in get_sector_keywords(sector_name=sector):
                     mitre_group_desc = check_sector_blacklist(desc=mitre_group_desc, sector=sector)
                     if sector is not None and keyword_ in mitre_group_desc and group_data not in groups:
+                        group_data["matrix"] = get_mitre_navigator_url(group_id=group_data["mitre_id"]).get("matrix")
                         groups.append(group_data)
             else:
                 groups.append(group_data)
@@ -125,8 +127,8 @@ def get_mitre_navigator_url(group_id: str) -> dict:
     for a_tag in soup.find_all("a", {"class": "dropdown-item"}):
         if "layer.json" in a_tag.attrs["href"]:
             return {
-                "matrix": f"https://mitre-attack.github.io/attack-navigator//#layerURL=https://attack.mitre.org/{a_tag.attrs['href']}",
-                "json": f"https://attack.mitre.org/{a_tag.attrs['href']}"
+                "matrix": make_url_tiny(url=f"https://mitre-attack.github.io/attack-navigator//#layerURL=https://attack.mitre.org/{a_tag.attrs['href']}"),
+                "json": make_url_tiny(url=f"https://attack.mitre.org/{a_tag.attrs['href']}")
             }
 
 
@@ -138,17 +140,18 @@ def print_mitre_groups_table(groups_from_mitre: list, columns=None) -> None:
     :return: None
     """
     sector_table = PrettyTable()
-    sector_table.field_names = ["ID", "MITRE Groups", "Associated Groups"]
+    sector_table.field_names = ["ID", "MITRE Groups", "Related Groups", "Matrix URL"]
     for group_ in groups_from_mitre:
         sector_table.add_row(
             [
                 f"{Fore.WHITE}{group_['mitre_id']}{Fore.LIGHTBLUE_EX}",
                 f"{Fore.WHITE}{group_['name']}{Fore.LIGHTBLUE_EX}",
-                f"{Fore.WHITE}{group_['relations']}{Fore.LIGHTBLUE_EX}"
+                f"{Fore.WHITE}{group_['relations']}{Fore.LIGHTBLUE_EX}",
+                f"{Fore.WHITE}{group_['matrix']}{Fore.LIGHTBLUE_EX}"
             ]
         )
     if columns is None:
-        print(f"{Fore.LIGHTBLUE_EX}{sector_table.get_string(fields=['ID', 'MITRE Groups'])}")
+        print(f"{Fore.LIGHTBLUE_EX}{sector_table.get_string(fields=['ID', 'MITRE Groups', 'Matrix URL'])}")
     else:
         print(f"{Fore.LIGHTBLUE_EX}{sector_table.get_string(fields=columns)}")
 
@@ -198,7 +201,7 @@ def perform_mitre_visibility(sector=None, group=None, ttp=None) -> dict:
     elif sector is not None:
         try:
             mitre_groups = mitre_groups_parser(sector=sector)
-            print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Found {Fore.LIGHTBLUE_EX}{len(mitre_groups)}{Fore.WHITE} groups on MITRE ATT&CK")
+            print(f"{Fore.WHITE}[{Fore.BLUE}>{Fore.WHITE}] Found {Fore.MAGENTA}{len(mitre_groups)}{Fore.WHITE} groups on MITRE ATT&CK")
             if mitre_groups:
                 print_mitre_groups_table(groups_from_mitre=mitre_groups)
             return {"mitre_groups": mitre_groups}
