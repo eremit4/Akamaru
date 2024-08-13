@@ -1,5 +1,5 @@
 tqdm ~= 4.65
 colorama ~= 0.4.6
-requests ~= 2.31.0
+requests~=2.32.3
 prettytable ~= 3.8.0
 beautifulsoup4 ~= 4.12.2
